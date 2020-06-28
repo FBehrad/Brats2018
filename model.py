@@ -105,17 +105,10 @@ def sampling(args):
     return z_mean + K.exp(0.5 * z_var) * epsilon
 
 def dice_coefficient(y_true, y_pred):
-    print(y_true.shape)
-    print(y_pred.shape)
-    numerator = 2 * K.sum(y_true * y_pred, axis=[-3,-2,-1])
-    denominator =  K.sum(y_true, axis=[-3,-2,-1]) + K.sum(y_pred, axis=[-3,-2,-1]) + 1e-8
-    dice = K.mean(numerator / denominator)
-    print('dice' , dice)
     numerator = 2 * K.sum(y_true * y_pred, axis=[1,2,3])
     denominator =  K.sum(y_true, axis=[1,2,3]) + K.sum(y_pred, axis=[1,2,3]) + 1e-8
     dice_s = K.mean(numerator / denominator)
-    print('dice_s' , dice_s)
-    return dice
+    return dice_s
 
 def loss_gt(e=1e-8):
     """
