@@ -1,7 +1,3 @@
-# Keras implementation of the paper:
-# 3D MRI Brain Tumor Segmentation Using Autoencoder Regularization
-# by Myronenko A. (https://arxiv.org/pdf/1810.11654.pdf)
-# Author of this code: Suyog Jadhav (https://github.com/IAmSUyogJadhav)
 
 import keras.backend as K
 from keras.losses import mse
@@ -19,7 +15,6 @@ except ImportError:
     url = 'https://raw.githubusercontent.com/titu1994/Keras-Group-Normalization/master/group_norm.py'
     urllib.request.urlretrieve(url, "group_norm.py")
     from group_norm import GroupNormalization
-
 
 def green_block(inp, filters, data_format='channels_first', name=None):
     """
@@ -94,7 +89,6 @@ def green_block(inp, filters, data_format='channels_first', name=None):
     out = Add(name=f'Out_{name}' if name else None)([x, inp_res])
     return out
 
-
 # From keras-team/keras/blob/master/examples/variational_autoencoder.py
 def sampling(args):
     """Reparameterization trick by sampling from an isotropic unit Gaussian.
@@ -110,12 +104,11 @@ def sampling(args):
     epsilon = K.random_normal(shape=(batch, dim))
     return z_mean + K.exp(0.5 * z_var) * epsilon
 
-
 def dice_coefficient(y_true, y_pred):
-    intersection = K.sum(K.abs(y_true * y_pred), axis=[-3,-2,-1])
-    dn = K.sum(K.square(y_true), axis=[-3,-2,-1]) + K.sum(K.square(y_pred), axis=[-3,-2,-1]) + 1e-8
-    return K.mean(2 * intersection / dn, axis=[0,1])
-
+    numerator = 2 * K.sum(y_true * y_pred, axis=[-3,-2,-1])
+    denominator =  K.sum(y_true, axis=[-3,-2,-1]) + K.sum(y_pred, axis=[-3,-2,-1]) + 1e-8
+    dice = K.mean(numerator / denominator)
+    return dice
 
 def loss_gt(e=1e-8):
     """
@@ -142,11 +135,7 @@ def loss_gt(e=1e-8):
         
     """
     def loss_gt_(y_true, y_pred):
-        intersection = K.sum(K.abs(y_true * y_pred), axis=[-3,-2,-1])
-        dn = K.sum(K.square(y_true), axis=[-3,-2,-1]) + K.sum(K.square(y_pred), axis=[-3,-2,-1]) + e
-        
-        return - K.mean(2 * intersection / dn, axis=[0,1])
-    
+        return 1.0 - dice_coefficient(y_true, y_pred)
     return loss_gt_
 
 def loss_VAE(input_shape, z_mean, z_var, weight_L2=0.1, weight_KL=0.1):
@@ -480,7 +469,8 @@ def build_model(input_shape=(4, 160, 192, 128), output_channels=3, weight_L2=0.1
     model.compile(
         adam(lr=1e-4),
         [loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)],
-        metrics=[metrics.Accuracy()]
+        metrics=[metrics.Accuracy(),
+                 dice_coefficient]
     )
 
     return model
