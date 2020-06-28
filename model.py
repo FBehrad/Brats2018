@@ -104,11 +104,11 @@ def sampling(args):
     epsilon = K.random_normal(shape=(batch, dim))
     return z_mean + K.exp(0.5 * z_var) * epsilon
 
-def dice_coefficient(y_true, y_pred):
-    numerator = 2 * K.sum(y_true * y_pred, axis=[1,2,3])
-    denominator =  K.sum(y_true, axis=[1,2,3]) + K.sum(y_pred, axis=[1,2,3]) + 1e-8
-    dice_s = K.mean(numerator / denominator)
-    return dice_s
+def dice_coefficient(y_true, y_pred, smooth=1):
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
 def loss_gt(e=1e-8):
     """
@@ -135,7 +135,7 @@ def loss_gt(e=1e-8):
         
     """
     def loss_gt_(y_true, y_pred):
-        return 1.0 - dice_coefficient(y_true, y_pred)
+        return - dice_coefficient(y_true, y_pred)
     return loss_gt_
 
 def loss_VAE(input_shape, z_mean, z_var, weight_L2=0.1, weight_KL=0.1):
