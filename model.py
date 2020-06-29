@@ -182,11 +182,11 @@ def loss_VAE(input_shape, z_mean, z_var, weight_L2=0.1, weight_KL=0.1):
         
         loss_L2 = K.mean(K.square(y_true - y_pred), axis=(1, 2, 3, 4)) # original axis value is (1,2,3,4).
 
-        loss_KL = -0.5 * K.mean(
+        loss_KL =(1 / n) * K.sum(
             z_var + K.square(z_mean) - 1. - K.log(z_var) ,
             axis=-1
         )
-       
+        
         return weight_L2 * loss_L2 + weight_KL * loss_KL
 
     return loss_VAE_
