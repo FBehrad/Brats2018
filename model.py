@@ -490,7 +490,7 @@ def build_model(input_shape=(4, 160, 192, 128), output_channels=3, weight_L2=0.1
 
     # Build and Compile the model
     out = out_GT
-    model = Model(inp, outputs=[out, out_VAE])  # Create the model
+    model = Model(inp, outputs=[out])  # Create the model  Model(inp, outputs=[out, out_VAE]) 
     model.summary()
     model.compile(
         adam(lr=1e-4),
