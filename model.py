@@ -106,10 +106,19 @@ def sampling(args):
 
 
 def dice_coefficient(y_true, y_pred,smooth=1e-8):
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+#     y_true_f = K.flatten(y_true)
+#     y_pred_f = K.flatten(y_pred)
+#     intersection = K.sum(y_true_f * y_pred_f)
+#     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+    y_true    = K.reshape(y_true,shape=(-1,4))
+    y_pred    = K.reshape(y_pred,shape=(-1,4))
+    sum_p     = K.sum(y_pred, -2)
+    sum_r     = K.sum(y_true, -2)
+    sum_pr    = K.sum(y_true * y_pred, -2)
+    weights   = K.pow(K.square(sum_r) + K.epsilon(), -1)
+    generalized_dice = (2 * K.sum(weights * sum_pr)) / (K.sum(weights * (sum_r + sum_p)))
+    return generalized_dice
+
 
 # def one_hot(y, num_classes):
 #     y_ = np.zeros([len(y), num_classes])
@@ -494,7 +503,7 @@ def build_model(input_shape=(4, 160, 192, 128), output_channels=3, weight_L2=0.1
     model.summary()
     model.compile(
         optimizer = adam(lr=1e-4),
-        loss = [loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)], #[loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)]
+        loss = loss_gt(dice_e) + loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL) , #[loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)]
         metrics=[dice_coefficient]
     )
 
