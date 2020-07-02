@@ -145,7 +145,7 @@ def dice_coefficient(y_true, y_pred,smooth=1e-8):
 
 
 
-def loss_gt(e=1e-8):
+def loss_gt(e=1e-8,input_shape, z_mean, z_var, weight_L2=0.1, weight_KL=0.1):
     """
     loss_gt(e=1e-8)
     ------------------------------------------------------
@@ -170,7 +170,8 @@ def loss_gt(e=1e-8):
         
     """
     def loss_gt_(y_true, y_pred):
-        return 1-dice_coefficient(y_true, y_pred)  
+        final_loss =  1-dice_coefficient(y_true, y_pred) + 0.1 * K.mean(K.square(y_true - y_pred), axis=(1, 2, 3, 4)) + 0.1 * 0.5 * K.sum(K.exp(z_var) + K.square(z_mean) - 1. - z_var,axis=-1 )
+        return final_loss 
     return loss_gt_
 
 def loss_VAE(input_shape, z_mean, z_var, weight_L2=0.1, weight_KL=0.1):
@@ -506,7 +507,7 @@ def build_model(input_shape=(4, 160, 192, 128), output_channels=3, weight_L2=0.1
     model.summary()
     model.compile(
         optimizer = adam(lr=1e-4),
-        loss = final_loss(dice_e,input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL) , #[loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)]
+        loss = loss_gt(dice_e,input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL) , #[loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)]
         metrics=[dice_coefficient]
     )
 
