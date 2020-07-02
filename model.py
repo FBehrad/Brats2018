@@ -105,34 +105,34 @@ def sampling(args):
     return z_mean + K.exp(0.5 * z_var) * epsilon
 
 
-# def dice_coefficient(y_true, y_pred,smooth=1):
-#     y_true_f = K.flatten(y_true)
-#     y_pred_f = K.flatten(y_pred)
-#     intersection = K.sum(y_true_f * y_pred_f)
-#     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
+def dice_coefficient(y_true, y_pred,smooth=1):
+    y_true_f = K.flatten(y_true)
+    y_pred_f = K.flatten(y_pred)
+    intersection = K.sum(y_true_f * y_pred_f)
+    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
-def one_hot(y, num_classes):
-    y_ = np.zeros([len(y), num_classes])
-    y_[np.arange(len(y)), y] = 1
-    return y_
+# def one_hot(y, num_classes):
+#     y_ = np.zeros([len(y), num_classes])
+#     y_[np.arange(len(y)), y] = 1
+#     return y_
 
 
-def dice_coefficient(y_true, y_pred):
-    """
-    :param y_true: sparse labels
-    :param y_pred: sparse labels
-    :param num_classes: number of classes
-    :return:
-    """
-    num_classes = 3
-    y_true = y_true.astype(int)
-    y_pred = y_pred.astype(int)
-    y_true = y_true.flatten()
-    y_true = one_hot(y_true, num_classes)
-    y_pred = y_pred.flatten()
-    y_pred = one_hot(y_pred, num_classes)
-    intersection = np.sum(y_true * y_pred, axis=0)
-    return (2. * intersection) / (np.sum(y_true, axis=0) + np.sum(y_pred, axis=0))
+# def dice_coefficient(y_true, y_pred):
+#     """
+#     :param y_true: sparse labels
+#     :param y_pred: sparse labels
+#     :param num_classes: number of classes
+#     :return:
+#     """
+#     num_classes = 3
+#     y_true = y_true.astype(int)
+#     y_pred = y_pred.astype(int)
+#     y_true = y_true.flatten()
+#     y_true = one_hot(y_true, num_classes)
+#     y_pred = y_pred.flatten()
+#     y_pred = one_hot(y_pred, num_classes)
+#     intersection = np.sum(y_true * y_pred, axis=0)
+#     return (2. * intersection) / (np.sum(y_true, axis=0) + np.sum(y_pred, axis=0))
 
 
 
