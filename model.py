@@ -161,7 +161,7 @@ def loss_gt(e=1e-8):
         
     """
     def loss_gt_(y_true, y_pred):
-        return dice_coefficient(y_true, y_pred)  
+        return 1-dice_coefficient(y_true, y_pred)  
     return loss_gt_
 
 def loss_VAE(input_shape, z_mean, z_var, weight_L2=0.1, weight_KL=0.1):
@@ -390,111 +390,111 @@ def build_model(input_shape=(4, 160, 192, 128), output_channels=3, weight_L2=0.1
     ## VAE (Variational Auto Encoder) Part
     # -------------------------------------------------------------------------
 
-#     ### VD Block (Reducing dimensionality of the data)
-#     x = GroupNormalization(groups=8, axis=1, name='Dec_VAE_VD_GN')(x4)
-#     x = Activation('relu', name='Dec_VAE_VD_relu')(x)
-#     x = Conv3D(
-#         filters=16,
-#         kernel_size=(3, 3, 3),
-#         strides=2,
-#         padding='same',
-#         data_format='channels_first',
-#         kernel_regularizer=l2(1e-5),
-#         name='Dec_VAE_VD_Conv3D')(x)
+    ### VD Block (Reducing dimensionality of the data)
+    x = GroupNormalization(groups=8, axis=1, name='Dec_VAE_VD_GN')(x4)
+    x = Activation('relu', name='Dec_VAE_VD_relu')(x)
+    x = Conv3D(
+        filters=16,
+        kernel_size=(3, 3, 3),
+        strides=2,
+        padding='same',
+        data_format='channels_first',
+        kernel_regularizer=l2(1e-5),
+        name='Dec_VAE_VD_Conv3D')(x)
 
-#     # Not mentioned in the paper, but the author used a Flattening layer here.
-#     x = Flatten(name='Dec_VAE_VD_Flatten')(x)
-#     x = Dense(256, name='Dec_VAE_VD_Dense')(x)
+    # Not mentioned in the paper, but the author used a Flattening layer here.
+    x = Flatten(name='Dec_VAE_VD_Flatten')(x)
+    x = Dense(256, name='Dec_VAE_VD_Dense')(x)
 
-#     ### VDraw Block (Sampling)
-#     z_mean = Dense(128, name='Dec_VAE_VDraw_Mean')(x)
-#     z_var = Dense(128, name='Dec_VAE_VDraw_Var')(x)
-#     x = Lambda(sampling, name='Dec_VAE_VDraw_Sampling')([z_mean, z_var])
+    ### VDraw Block (Sampling)
+    z_mean = Dense(128, name='Dec_VAE_VDraw_Mean')(x)
+    z_var = Dense(128, name='Dec_VAE_VDraw_Var')(x)
+    x = Lambda(sampling, name='Dec_VAE_VDraw_Sampling')([z_mean, z_var])
 
-#     ### VU Block (Upsizing back to a depth of 256)
-#     x = Dense((c//4) * (H//16) * (W//16) * (D//16))(x)
-#     x = Activation('relu')(x)
-#     x = Reshape(((c//4), (H//16), (W//16), (D//16)))(x)
-#     x = Conv3D(
-#         filters=256,
-#         kernel_size=(1, 1, 1),
-#         strides=1,
-#         data_format='channels_first',
-#         kernel_regularizer=l2(1e-5),
-#         name='Dec_VAE_ReduceDepth_256')(x)
-#     x = UpSampling3D(
-#         size=2,
-#         data_format='channels_first',
-#         name='Dec_VAE_UpSample_256')(x)
+    ### VU Block (Upsizing back to a depth of 256)
+    x = Dense((c//4) * (H//16) * (W//16) * (D//16))(x)
+    x = Activation('relu')(x)
+    x = Reshape(((c//4), (H//16), (W//16), (D//16)))(x)
+    x = Conv3D(
+        filters=256,
+        kernel_size=(1, 1, 1),
+        strides=1,
+        data_format='channels_first',
+        kernel_regularizer=l2(1e-5),
+        name='Dec_VAE_ReduceDepth_256')(x)
+    x = UpSampling3D(
+        size=2,
+        data_format='channels_first',
+        name='Dec_VAE_UpSample_256')(x)
 
-#     ### Green Block x1 (output filters=128)
-#     x = Conv3D(
-#         filters=128,
-#         kernel_size=(1, 1, 1),
-#         strides=1,
-#         data_format='channels_first',
-#         kernel_regularizer=l2(1e-5),
-#         name='Dec_VAE_ReduceDepth_128')(x)
-#     x = UpSampling3D(
-#         size=2,
-#         data_format='channels_first',
-#         name='Dec_VAE_UpSample_128')(x)
-#     x = green_block(x, 128, name='Dec_VAE_128')
+    ### Green Block x1 (output filters=128)
+    x = Conv3D(
+        filters=128,
+        kernel_size=(1, 1, 1),
+        strides=1,
+        data_format='channels_first',
+        kernel_regularizer=l2(1e-5),
+        name='Dec_VAE_ReduceDepth_128')(x)
+    x = UpSampling3D(
+        size=2,
+        data_format='channels_first',
+        name='Dec_VAE_UpSample_128')(x)
+    x = green_block(x, 128, name='Dec_VAE_128')
 
-#     ### Green Block x1 (output filters=64)
-#     x = Conv3D(
-#         filters=64,
-#         kernel_size=(1, 1, 1),
-#         strides=1,
-#         data_format='channels_first',
-#         kernel_regularizer=l2(1e-5),
-#         name='Dec_VAE_ReduceDepth_64')(x)
-#     x = UpSampling3D(
-#         size=2,
-#         data_format='channels_first',
-#         name='Dec_VAE_UpSample_64')(x)
-#     x = green_block(x, 64, name='Dec_VAE_64')
+    ### Green Block x1 (output filters=64)
+    x = Conv3D(
+        filters=64,
+        kernel_size=(1, 1, 1),
+        strides=1,
+        data_format='channels_first',
+        kernel_regularizer=l2(1e-5),
+        name='Dec_VAE_ReduceDepth_64')(x)
+    x = UpSampling3D(
+        size=2,
+        data_format='channels_first',
+        name='Dec_VAE_UpSample_64')(x)
+    x = green_block(x, 64, name='Dec_VAE_64')
 
-#     ### Green Block x1 (output filters=32)
-#     x = Conv3D(
-#         filters=32,
-#         kernel_size=(1, 1, 1),
-#         strides=1,
-#         data_format='channels_first',
-#         kernel_regularizer=l2(1e-5),
-#         name='Dec_VAE_ReduceDepth_32')(x)
-#     x = UpSampling3D(
-#         size=2,
-#         data_format='channels_first',
-#         name='Dec_VAE_UpSample_32')(x)
-#     x = green_block(x, 32, name='Dec_VAE_32')
+    ### Green Block x1 (output filters=32)
+    x = Conv3D(
+        filters=32,
+        kernel_size=(1, 1, 1),
+        strides=1,
+        data_format='channels_first',
+        kernel_regularizer=l2(1e-5),
+        name='Dec_VAE_ReduceDepth_32')(x)
+    x = UpSampling3D(
+        size=2,
+        data_format='channels_first',
+        name='Dec_VAE_UpSample_32')(x)
+    x = green_block(x, 32, name='Dec_VAE_32')
 
-#     ### Blue Block x1 (output filters=32)
-#     x = Conv3D(
-#         filters=32,
-#         kernel_size=(3, 3, 3),
-#         strides=1,
-#         padding='same',
-#         data_format='channels_first',
-#         kernel_regularizer=l2(1e-5),
-#         name='Input_Dec_VAE_Output')(x)
+    ### Blue Block x1 (output filters=32)
+    x = Conv3D(
+        filters=32,
+        kernel_size=(3, 3, 3),
+        strides=1,
+        padding='same',
+        data_format='channels_first',
+        kernel_regularizer=l2(1e-5),
+        name='Input_Dec_VAE_Output')(x)
 
-#     ### Output Block
-#     out_VAE = Conv3D(
-#         filters=4,
-#         kernel_size=(1, 1, 1),
-#         strides=1,
-#         data_format='channels_first',
-#         kernel_regularizer=l2(1e-5),
-#         name='Dec_VAE_Output')(x) 
+    ### Output Block
+    out_VAE = Conv3D(
+        filters=4,
+        kernel_size=(1, 1, 1),
+        strides=1,
+        data_format='channels_first',
+        kernel_regularizer=l2(1e-5),
+        name='Dec_VAE_Output')(x) 
 
     # Build and Compile the model
     out = out_GT
-    model = Model(inp, outputs=out)  # Create the model  Model(inp, outputs=[out, out_VAE]) 
+    model = Model(inp, outputs=[out, out_VAE])   # Create the model  Model(inp, outputs=[out, out_VAE]) 
     model.summary()
     model.compile(
-        adam(lr=1e-4),
-        loss_gt(dice_e), #[loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)]
+        optimizer = adam(lr=1e-4),
+        loss = [loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)], #[loss_gt(dice_e), loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)]
         metrics=[dice_coefficient]
     )
 
