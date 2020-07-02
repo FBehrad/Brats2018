@@ -224,9 +224,6 @@ def loss_VAE(input_shape, z_mean, z_var, weight_L2=0.1, weight_KL=0.1):
         return weight_L2 * loss_L2 + weight_KL * loss_KL + loss_gt_(y_true, y_pred) 
 
     return loss_VAE_
-def final_loss(dice_e=1e-8,input_shape, z_mean, z_var, weight_L2=0.1, weight_KL=0.1):
-    final_loss = loss_gt(dice_e) + loss_VAE(input_shape, z_mean, z_var, weight_L2=weight_L2, weight_KL=weight_KL)
-    return final_loss
 
 def build_model(input_shape=(4, 160, 192, 128), output_channels=3, weight_L2=0.1, weight_KL=0.1, dice_e=1e-8):
     """
